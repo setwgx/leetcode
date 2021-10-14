@@ -1,12 +1,34 @@
 剑指 Offer 64. 求1+2+…+n
 求 1+2+...+n ，要求不能使用乘除法、for、while、if、else、switch、case等关键字及条件判断语句（A?B:C）
 
+输入: n = 9
+输出: 45
+
 class Solution {
 public:
     int sumNums(int n) {
         //A&&B，当A为false时不会继续判断B
         n && (n+=sumNums(n-1));
         return n;
+    }
+};
+
+-----------------------------------
+136. 只出现一次的数字
+给定一个非空整数数组，除了某个元素只出现一次以外，其余每个元素均出现两次。找出那个只出现了一次的元素。
+
+输入: [4,1,2,1,2]
+输出: 4
+
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        //使用XOR思想，0与任何数字异或都为其他数字，出现两次的数字XOR后会为0
+        int res=0;
+        for(int num:nums){
+            res^=num;//循环与所有的数字进行异或
+        }
+        return res;
     }
 };
 
