@@ -1,0 +1,20 @@
+1.二分查找法
+int BinarySearch(int nums[], int n, int target)
+{
+    int left = 0; //两个指针表示搜索范围
+    int right = n - 1;
+    while (left <= right) { //循环条件
+      int mid = left + ((right - left) >> 1); //可以防止溢出，移位提高效率，每次循环更新
+      if(nums[mid] == target){ //找到目标
+          return mid;
+      }else if(nums[mid] > target){ //更改搜索范围
+          right = mid - 1;
+      }else{
+          left = mid + 1;
+      }
+   }
+   return -1; 
+   //注释：同时可以尝试最后判断相等， 因为搜索中不等的情况会更多一些
+}
+
+----------------------------------------------------------------
