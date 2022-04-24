@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2021-05-27</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h2><a id="_0"></a><strong>全连接层和激活函数的反向实现</strong></h2>
+<p>1.实现全连接层的反向传播</p>
+<pre><code class="prism language-python"><span class="token keyword">import</span> numpy <span class="token keyword">as</span> np
+
+<span class="token keyword">class</span> <span class="token class-name">FullyConnected</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> W<span class="token punctuation">,</span> b<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">r'''
+        全连接层的初始化。
+
+        Parameter:
+        - W: numpy.array, (D_in, D_out)
+        - b: numpy.array, (D_out)
+        '''</span>
+        self<span class="token punctuation">.</span>W <span class="token operator">=</span> W
+        self<span class="token punctuation">.</span>b <span class="token operator">=</span> b
+
+        self<span class="token punctuation">.</span>x <span class="token operator">=</span> <span class="token boolean">None</span>
+        self<span class="token punctuation">.</span>original_x_shape <span class="token operator">=</span> <span class="token boolean">None</span>
+
+        self<span class="token punctuation">.</span>dW <span class="token operator">=</span> <span class="token boolean">None</span>
+        self<span class="token punctuation">.</span>db <span class="token operator">=</span> <span class="token boolean">None</span>
+
+    <span class="token keyword">def</span> <span class="token function">forward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">r'''
+        全连接层的前向传播。
+
+        Parameter:
+        - x: numpy.array, (B, d1, d2, ..., dk)
+
+        Return:
+        - y: numpy.array, (B, M)
+        '''</span>
+        self<span class="token punctuation">.</span>original_x_shape <span class="token operator">=</span> x<span class="token punctuation">.</span>shape
+        x <span class="token operator">=</span> x<span class="token punctuation">.</span>reshape<span class="token punctuation">(</span>x<span class="token punctuation">.</span>shape<span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>x <span class="token operator">=</span> x
+
+        out <span class="token operator">=</span> np<span class="token punctuation">.</span>dot<span class="token punctuation">(</span>self<span class="token punctuation">.</span>x<span class="token punctuation">,</span> self<span class="token punctuation">.</span>W<span class="token punctuation">)</span> <span class="token operator">+</span> self<span class="token punctuation">.</span>b
+
+        <span class="token keyword">return</span> out
+
+    <span class="token keyword">def</span> <span class="token function">backward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> dout<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">r'''
+        全连接层的反向传播
+
+        Parameter:
+        - dout: numpy.array, (B, M)
+
+        Return:
+        - dx: numpy.array, (B, d1, d2, ..., dk) 与self.original_x_shape形状相同
+
+        另外，还需计算以下结果：
+        - self.dW: numpy.array, (N, M) 与self.W形状相同
+        - self.db: numpy.array, (M,)
+        '''</span>
+        <span class="token comment">########## Begin ##########</span>
+        dx <span class="token operator">=</span> np<span class="token punctuation">.</span>dot<span class="token punctuation">(</span>dout<span class="token punctuation">,</span> self<span class="token punctuation">.</span>W<span class="token punctuation">.</span>T<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>dW <span class="token operator">=</span> np<span class="token punctuation">.</span>dot<span class="token punctuation">(</span>self<span class="token punctuation">.</span>x<span class="token punctuation">.</span>T<span class="token punctuation">,</span> dout<span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>db <span class="token operator">=</span> np<span class="token punctuation">.</span><span class="token builtin">sum</span><span class="token punctuation">(</span>dout<span class="token punctuation">,</span> axis<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">)</span>
+        dx <span class="token operator">=</span> dx<span class="token punctuation">.</span>reshape<span class="token punctuation">(</span><span class="token operator">*</span>self<span class="token punctuation">.</span>original_x_shape<span class="token punctuation">)</span>
+        <span class="token keyword">return</span> dx
+        <span class="token comment">########## End ##########</span>
+</code></pre>
+<p>2.实现常用激活函数的反向传播</p>
+<pre><code class="prism language-python">
+```python
+<span class="token keyword">import</span> numpy <span class="token keyword">as</span> np
+
+
+<span class="token keyword">class</span> <span class="token class-name">Sigmoid</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>out <span class="token operator">=</span> <span class="token boolean">None</span>
+
+    <span class="token keyword">def</span> <span class="token function">forward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">r'''
+        Sigmoid激活函数的前向传播。
+
+        Parameter:
+        - x: numpy.array, (B, d1, d2, ..., dk)
+
+        Return:
+        - y: numpy.array, (B, d1, d2, ..., dk)
+        '''</span>
+        out <span class="token operator">=</span> <span class="token number">1.</span> <span class="token operator">/</span> <span class="token punctuation">(</span><span class="token number">1.</span> <span class="token operator">+</span> np<span class="token punctuation">.</span>exp<span class="token punctuation">(</span><span class="token operator">-</span>x<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>out <span class="token operator">=</span> out
+        <span class="token keyword">return</span> out
+
+    <span class="token keyword">def</span> <span class="token function">backward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> dout<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">r'''
+        sigmoid的反向传播
+
+        Parameter:
+        - dout: numpy.array, (B, d1, d2, ..., dk)
+
+        Return:
+        - dx: numpy.array, (B, d1, d2, ..., dk)
+        '''</span>
+        <span class="token comment">########## Begin ##########</span>
+        dx <span class="token operator">=</span> dout <span class="token operator">*</span> <span class="token punctuation">(</span><span class="token number">1.0</span> <span class="token operator">-</span> self<span class="token punctuation">.</span>out<span class="token punctuation">)</span> <span class="token operator">*</span> self<span class="token punctuation">.</span>out
+        <span class="token keyword">return</span> dx
+        <span class="token comment">########## End ##########</span>
+
+
+<span class="token keyword">class</span> <span class="token class-name">Relu</span><span class="token punctuation">:</span>
+    <span class="token keyword">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>mask <span class="token operator">=</span> <span class="token boolean">None</span>
+
+    <span class="token keyword">def</span> <span class="token function">forward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> x<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">r'''
+        ReLU激活函数的前向传播。
+
+        Parameter:
+        - x: numpy.array, (B, d1, d2, ..., dk)
+
+        Return:
+        - y: numpy.array, (B, d1, d2, ..., dk)
+        '''</span>
+        self<span class="token punctuation">.</span>mask <span class="token operator">=</span> <span class="token punctuation">(</span>x <span class="token operator">&lt;=</span> <span class="token number">0</span><span class="token punctuation">)</span>
+        out <span class="token operator">=</span> x<span class="token punctuation">.</span>copy<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        out<span class="token punctuation">[</span>self<span class="token punctuation">.</span>mask<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0</span>
+        <span class="token keyword">return</span> out
+
+    <span class="token keyword">def</span> <span class="token function">backward</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> dout<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">r'''
+        relu的反向传播
+
+        Parameter:
+        - dout: numpy.array, (B, d1, d2, ..., dk)
+
+        Return:
+        - dx: numpy.array, (B, d1, d2, ..., dk)
+        '''</span>
+        <span class="token comment">########## Begin ##########</span>
+        dout<span class="token punctuation">[</span>self<span class="token punctuation">.</span>mask<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token number">0</span>
+        dx <span class="token operator">=</span> dout
+        <span class="token keyword">return</span> dx
+        <span class="token comment">########## End ##########</span>
+</code></pre>
+<pre><code>
+</code></pre>
+</div>
+</body>
+
+</html>
