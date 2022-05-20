@@ -43,3 +43,21 @@ x2=x1^y1=x0^y0^x0=y0^0=y0
 
 
 
+4.线性筛(合数晒->欧式筛->线性筛)
+size=1001
+v=[0]*size //v[i]表示素数i的最小质因子
+prime=[0]*size //prime范围2-size之间的素数
+cnt=0
+for i in range(2, size): //
+    if v[i]==0: //如果是素数，即没有被筛选到过
+        v[i]=i
+        prime[cnt]=i
+        cnt+=1
+    for j in range(cnt):
+        if prime[j]>v[i] or prime[j]*i>=size: //超过范围的就不需要了
+            break
+        v[prime[j]*i]=prime[j] //被最小质因子筛去
+print(prime)
+
+
+
